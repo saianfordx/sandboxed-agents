@@ -14,8 +14,8 @@ export class EmbeddingsClient {
     const env = validateEnvironmentVariables();
     
     this.config = {
-      model: 'text-embedding-3-large',
-      dimensions: 3072,
+      model: 'text-embedding-3-small',
+      dimensions: 1536,
       batchSize: 10,
       ...config,
     };

@@ -169,7 +169,7 @@ export interface RetrievalToolOutput {
 
 // Component prop types
 export interface FileUploadProps {
-  onUpload: (file: File) => Promise<void>;
+  onUpload?: (file: File) => Promise<void>;
   maxSize: number;
   acceptedTypes: string[];
   disabled?: boolean;

@@ -23,6 +23,8 @@ export default function FileUpload({
       return;
     }
 
+    let progressInterval: NodeJS.Timeout | undefined;
+
     try {
       setStatus('uploading');
       setUploadProgress(0);
@@ -33,10 +35,12 @@ export default function FileUpload({
       formData.append('file', file);
 
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
-            clearInterval(progressInterval);
+            if (progressInterval) {
+              clearInterval(progressInterval);
+            }
             return 90;
           }
           return prev + 10;
@@ -44,9 +48,13 @@ export default function FileUpload({
       }, 200);
 
       // Call the server action
+      console.log('Calling server action...');
       const result = await uploadDocument(formData);
+      console.log('Server action completed:', result);
 
-      clearInterval(progressInterval);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setUploadProgress(100);
 
       if (result.success) {
@@ -62,6 +70,10 @@ export default function FileUpload({
         setMessage(result.error || 'Upload failed');
       }
     } catch (error) {
+      console.error('Upload error:', error);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Upload failed');
       setUploadProgress(0);

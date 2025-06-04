@@ -1,10 +1,13 @@
 'use server';
 
-import { processUploadedFile, chunkDocument } from '@/lib/utils/fileProcessing';
+import { processUploadedFile, chunkDocument } from '@/lib/utils/fileProcessing.server';
 import { getEmbeddingsClient } from '@/lib/openai/embeddings';
 import { getPineconeClient } from '@/lib/pinecone/client';
 import { validateFile } from '@/lib/utils/validation';
 import type { UploadDocumentResponse } from '@/lib/utils/types';
+
+// Test mode - set to true to bypass external API calls
+const TEST_MODE = !process.env.OPENAI_API_KEY || !process.env.PINECONE_API_KEY;
 
 /**
  * Server action to upload and process documents
@@ -14,6 +17,7 @@ import type { UploadDocumentResponse } from '@/lib/utils/types';
 export async function uploadDocument(formData: FormData): Promise<UploadDocumentResponse> {
   try {
     console.log('Starting document upload process...');
+    console.log('Test mode:', TEST_MODE);
 
     // Extract file from FormData
     const file = formData.get('file') as File;
@@ -54,6 +58,17 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
 
     console.log(`Created ${chunks.length} chunks from document`);
 
+    if (TEST_MODE) {
+      // In test mode, skip external API calls
+      console.log('TEST MODE: Skipping embeddings and vector store operations');
+      
+      return {
+        success: true,
+        documentId: document.id,
+        message: `Successfully processed ${document.filename} in TEST MODE. Created ${chunks.length} chunks. Set up API keys in .env.local to enable full functionality.`,
+      };
+    }
+
     // Generate embeddings for chunks
     console.log('Generating embeddings...');
     const embeddingsClient = getEmbeddingsClient();
@@ -69,33 +84,42 @@ export async function uploadDocument(formData: FormData): Promise<UploadDocument
     console.log(`Successfully stored ${storedIds.length} chunks in Pinecone`);
 
     // Update document metadata
+    console.log('Updating document metadata...');
     document.metadata.chunkCount = chunks.length;
     document.status = 'completed';
     document.processedAt = new Date();
 
-    return {
+    console.log('Preparing success response...');
+    const successResponse = {
       success: true,
       documentId: document.id,
       message: `Successfully processed ${document.filename}. Created ${chunks.length} chunks and stored in vector database.`,
     };
 
+    console.log('Returning success response:', successResponse);
+    return successResponse;
+
   } catch (error) {
     console.error('Document upload failed:', error);
     
-    return {
+    const errorResponse = {
       success: false,
       message: 'Failed to process document',
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
+
+    console.log('Returning error response:', errorResponse);
+    return errorResponse;
   }
 }
 
 /**
  * Server action to get upload progress (placeholder for future implementation)
- * @param documentId - ID of the document being processed
+ * @param _documentId - ID of the document being processed
  * @returns Promise<object> - Upload progress information
  */
-export async function getUploadProgress(documentId: string): Promise<{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getUploadProgress(_documentId: string): Promise<{
   status: 'uploading' | 'processing' | 'completed' | 'failed';
   progress: number;
   message: string;
