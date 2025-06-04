@@ -1,0 +1,19 @@
+RAG Application Test Document
+
+This is a test document for our Retrieval Augmented Generation (RAG) application. 
+
+The application uses the following technologies:
+- Next.js for the web framework
+- LangChain v0.3+ for AI orchestration
+- Pinecone for vector storage
+- OpenAI for embeddings and language models
+
+Key Features:
+1. Document Upload: Users can upload PDF and TXT files
+2. Text Processing: Documents are automatically chunked and embedded
+3. Vector Search: Semantic search using Pinecone vector database
+4. AI Chat: Conversational interface powered by LangChain
+
+This document will be processed into chunks, embedded using OpenAI's text-embedding-3-large model, and stored in Pinecone for retrieval during conversations.
+
+The system follows modern RAG patterns with tool-calling capabilities and proper error handling throughout the pipeline. 
