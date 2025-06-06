@@ -30,19 +30,21 @@ function createChatAgent() {
     const messages = state.messages;
     
     // System message for RAG context
-    const systemMessage = new SystemMessage(`You are a helpful AI assistant with access to a knowledge base. When users ask questions:
+    const systemMessage = new SystemMessage(`You are a helpful AI assistant with access to a knowledge base and image generation capabilities. When users ask questions:
 
 1. Use the retrieve_documents tool to find relevant information from the knowledge base
 2. If you need information from a specific document, use the search_by_source tool  
 3. Always cite your sources when providing information from retrieved documents
 4. If no relevant information is found, say so clearly
-5. Be concise but comprehensive in your responses
+5. Use the generate_image tool when users ask to create, generate, draw, or make an image
+6. Be concise but comprehensive in your responses
 
 Available tools:
 - retrieve_documents: Search the knowledge base for relevant information
 - search_by_source: Search within a specific document
 - get_knowledge_base_info: Get statistics about available documents
 - contextualize_question: Improve follow-up questions with conversation context
+- generate_image: Create images using DALL-E based on text descriptions
 
 Always strive to provide accurate, helpful responses based on the available knowledge.`);
 
@@ -142,13 +144,48 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
     const finalMessages = result.messages;
     console.log('Agent finished with', finalMessages.length, 'messages');
     
-    // Find the last AI message
+    // Find the last AI message and check for image generation
     let lastAIMessage: AIMessage | null = null;
+    let imageUrl: string | undefined;
+    let imageMetadata: any | undefined;
+    
     for (let i = finalMessages.length - 1; i >= 0; i--) {
       const msg = finalMessages[i];
       if (msg instanceof AIMessage && typeof msg.content === 'string' && msg.content.trim()) {
         lastAIMessage = msg;
         break;
+      }
+    }
+    
+    // Check for tool results in messages to find image generation
+    for (const msg of finalMessages) {
+      if (msg.additional_kwargs?.tool_calls) {
+        for (const toolCall of msg.additional_kwargs.tool_calls) {
+          if (toolCall.function?.name === 'generate_image') {
+            // Look for the corresponding tool message with results
+            const toolMessageIndex = finalMessages.findIndex(m => 
+              'tool_call_id' in m && m.tool_call_id === toolCall.id
+            );
+            if (toolMessageIndex !== -1) {
+              try {
+                const toolMessage = finalMessages[toolMessageIndex];
+                const toolResult = JSON.parse(toolMessage.content as string);
+                if (toolResult.imageUrl) {
+                  imageUrl = toolResult.imageUrl;
+                  imageMetadata = {
+                    originalPrompt: toolResult.originalPrompt,
+                    revisedPrompt: toolResult.revisedPrompt,
+                    size: toolResult.size,
+                    quality: toolResult.quality,
+                    style: toolResult.style,
+                  };
+                }
+              } catch (e) {
+                console.log('Could not parse tool result for image generation');
+              }
+            }
+          }
+        }
       }
     }
     
@@ -160,6 +197,8 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
         message: lastAIMessage.content as string,
         messageId: `msg_${Date.now()}`,
         sources: [], // TODO: Extract sources from tool calls
+        imageUrl,
+        imageMetadata,
       };
     } else {
       console.error('No valid AI message found in response');

@@ -47,6 +47,8 @@ export interface ChatMessage {
   timestamp: Date;
   sources?: RetrievedDocument[];
   conversationId: string;
+  imageUrl?: string; // For DALL-E generated images
+  imageMetadata?: ImageGenerationMetadata; // Additional image metadata
 }
 
 export interface RetrievedDocument {
@@ -95,6 +97,8 @@ export interface ChatCompletionResponse {
   messageId?: string;
   sources?: RetrievedDocument[];
   error?: string;
+  imageUrl?: string; // For DALL-E generated images
+  imageMetadata?: ImageGenerationMetadata; // Additional image metadata
 }
 
 // Configuration types
@@ -195,4 +199,12 @@ export interface ConversationHistoryProps {
   onSelectConversation: (conversationId: string) => void;
   onDeleteConversation: (conversationId: string) => void;
   onCreateConversation: () => void;
+}
+
+export interface ImageGenerationMetadata {
+  originalPrompt: string;
+  revisedPrompt?: string;
+  size: string;
+  quality: string;
+  style: string;
 } 

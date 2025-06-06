@@ -34,7 +34,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
       // Add welcome message
       const welcomeMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
-        content: "Hello! I'm your AI assistant. I can help you find information from your uploaded documents. What would you like to know?",
+        content: "Hello! I'm your AI assistant. I can help you find information from your uploaded documents and generate images. What would you like to know or create?",
         role: 'assistant',
         timestamp: new Date(),
         conversationId: newConversationId,
@@ -84,6 +84,8 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
           timestamp: new Date(),
           conversationId,
           sources: response.sources,
+          imageUrl: response.imageUrl,
+          imageMetadata: response.imageMetadata,
         };
         
         setMessages(prev => [...prev, assistantMessage]);
@@ -132,7 +134,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-blue-50">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-          <p className="text-sm text-gray-600">Ask questions about your documents</p>
+          <p className="text-sm text-gray-600">Ask questions about your documents or request image generation</p>
         </div>
         {onClose && (
           <button
@@ -161,6 +163,27 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
               }`}
             >
               <div className="whitespace-pre-wrap break-words">{message.content}</div>
+              
+              {/* Generated Image */}
+              {message.imageUrl && (
+                <div className="mt-3">
+                  <img 
+                    src={message.imageUrl} 
+                    alt={message.imageMetadata?.originalPrompt || "Generated image"}
+                    className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
+                    loading="lazy"
+                  />
+                  {message.imageMetadata && (
+                    <div className="mt-2 text-xs text-gray-500">
+                      <div>Original prompt: {message.imageMetadata.originalPrompt}</div>
+                      {message.imageMetadata.revisedPrompt && (
+                        <div>Refined prompt: {message.imageMetadata.revisedPrompt}</div>
+                      )}
+                      <div>Size: {message.imageMetadata.size} | Quality: {message.imageMetadata.quality} | Style: {message.imageMetadata.style}</div>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Sources */}
               {message.sources && message.sources.length > 0 && (

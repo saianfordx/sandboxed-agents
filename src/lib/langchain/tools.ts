@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getPineconeClient } from '@/lib/pinecone/client';
 import type { RetrievedDocument, RetrievalToolOutput } from '@/lib/utils/types';
 import { RetrievalToolInputSchema } from '@/lib/utils/validation';
+import OpenAI from 'openai';
 
 /**
  * Tool for retrieving relevant documents from the vector store
@@ -166,6 +167,80 @@ export const contextualizeQuestionTool = tool(
 );
 
 /**
+ * Tool for generating images using DALL-E
+ */
+export const generateImageTool = tool(
+  async ({ prompt, size = "1024x1024", quality = "standard", style = "vivid" }: { 
+    prompt: string; 
+    size?: "256x256" | "512x512" | "1024x1024" | "1024x1792" | "1792x1024";
+    quality?: "standard" | "hd";
+    style?: "vivid" | "natural";
+  }) => {
+    try {
+      console.log(`Generating image with prompt: "${prompt}"`);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error('OpenAI API key not configured');
+      }
+
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: prompt,
+        n: 1,
+        size: size,
+        quality: quality,
+        style: style,
+      });
+
+      if (!response.data || response.data.length === 0) {
+        throw new Error('No image data returned from DALL-E');
+      }
+
+      const firstImage = response.data[0];
+      if (!firstImage) {
+        throw new Error('No image data in response');
+      }
+
+      const imageUrl = firstImage.url;
+      const revisedPrompt = firstImage.revised_prompt;
+      
+      if (!imageUrl) {
+        throw new Error('No image URL returned from DALL-E');
+      }
+
+      console.log('Successfully generated image with DALL-E');
+      
+      return {
+        imageUrl,
+        originalPrompt: prompt,
+        revisedPrompt,
+        size,
+        quality,
+        style,
+        message: `I've created an image based on your description: "${prompt}". ${revisedPrompt ? `DALL-E refined the prompt to: "${revisedPrompt}"` : ''}`,
+      };
+    } catch (error) {
+      console.error('Image generation failed:', error);
+      throw new Error(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+  {
+    name: 'generate_image',
+    description: 'Generate an image using DALL-E based on a text description. Use this tool when users ask to create, generate, draw, or make an image of something.',
+    schema: z.object({
+      prompt: z.string().describe('Detailed description of the image to generate'),
+      size: z.enum(["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"]).default("1024x1024").describe('Size of the generated image'),
+      quality: z.enum(["standard", "hd"]).default("standard").describe('Quality of the generated image'),
+      style: z.enum(["vivid", "natural"]).default("vivid").describe('Style of the generated image - vivid for more hyper-real and dramatic, natural for more natural looking'),
+    }),
+  }
+);
+
+/**
  * Array of all available tools for the RAG system
  */
 export const ragTools = [
@@ -173,6 +248,7 @@ export const ragTools = [
   searchBySourceTool,
   getKnowledgeBaseInfoTool,
   contextualizeQuestionTool,
+  generateImageTool,
 ];
 
 /**

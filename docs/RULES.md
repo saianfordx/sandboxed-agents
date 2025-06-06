@@ -1,7 +1,7 @@
 # CURSOR AI DEVELOPMENT RULES
 
 ## PROJECT OVERVIEW
-This is a Next.js application that implements a RAG (Retrieval Augmented Generation) system using Pinecone vector store and LangChain conversational agents.
+This is a Next.js application that implements a RAG (Retrieval Augmented Generation) system using Pinecone vector store and LangChain conversational agents, with integrated DALL-E image generation capabilities.
 
 ## CORE PRINCIPLES
 
@@ -10,6 +10,7 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
 - **ALWAYS** check [LangChain JS Documentation](https://js.langchain.com/docs/introduction)
 - **ALWAYS** verify with [Pinecone Documentation](https://docs.pinecone.io/)
 - **ALWAYS** check [OpenAI API Documentation](https://platform.openai.com/docs/)
+- **ALWAYS** review [DALL-E API Documentation](https://platform.openai.com/docs/guides/images) for image generation
 - **ALWAYS** review [Next.js Documentation](https://nextjs.org/docs) for App Router patterns
 - **NEVER** assume implementation details - verify with current docs
 - **NEVER** use outdated or deprecated methods
