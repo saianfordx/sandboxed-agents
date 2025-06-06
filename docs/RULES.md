@@ -3,6 +3,12 @@
 ## PROJECT OVERVIEW
 This is a Next.js application that implements a RAG (Retrieval Augmented Generation) system using Pinecone vector store and LangChain conversational agents, with integrated DALL-E image generation capabilities.
 
+## CURRENT TASK: REVISING AGENT.MD FOR PRESENTATION
+- **TASK**: Creating presentation-ready documentation explaining the RAG agent architecture
+- **TARGET AUDIENCE**: Both developers and non-developers unfamiliar with RAG/LangGraph
+- **FOCUS**: Clear explanations, visual diagrams, real-world analogies
+- **STATUS**: In Progress - Analyzing current implementation and creating structured documentation
+
 ## CORE PRINCIPLES
 
 ### 1. DOCUMENTATION FIRST
