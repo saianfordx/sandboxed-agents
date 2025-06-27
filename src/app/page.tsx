@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import UploadModal from '@/components/UploadModal';
 import ActivityLog, { ActivityLogEntry } from '@/components/ActivityLog';
@@ -9,6 +9,44 @@ export default function Home() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [activityLog, setActivityLog] = useState<ActivityLogEntry[]>([]);
   const [showActivityLog, setShowActivityLog] = useState(true);
+  const [chatKey, setChatKey] = useState(0); // Key to force chat interface remount
+
+  const clearConversation = () => {
+    if (confirm('🗑️ Fresh Start Time!\n\nReady to wipe the slate clean and start a brand new conversation? This will permanently delete all our chat history (but hey, that means we get to meet again for the first time! 😄)\n\nShall we do this?')) {
+      setChatKey(prev => prev + 1); // Force remount of ChatInterface
+      setActivityLog([]); // Also clear activity log when starting fresh
+    }
+  };
+
+  const clearActivityLog = () => {
+    if (confirm('🗑️ Spring Cleaning Time!\n\nTime to tidy up that activity log! This will permanently delete all those behind-the-scenes details I\'ve been showing you. Don\'t worry though - I\'ll keep generating new ones as we chat!\n\nReady to clean house?')) {
+      setActivityLog([]);
+    }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + D = Delete conversation
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+        event.preventDefault();
+        clearConversation();
+      }
+      // Ctrl/Cmd + Shift + L = Clear activity log
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'L') {
+        event.preventDefault();
+        clearActivityLog();
+      }
+      // Ctrl/Cmd + Shift + A = Toggle activity log
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'A') {
+        event.preventDefault();
+        setShowActivityLog(!showActivityLog);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showActivityLog]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -22,6 +60,31 @@ export default function Home() {
           
           {/* Header Actions */}
           <div className="flex items-center space-x-3">
+            {/* Clear Activity Log Button */}
+            <button
+              onClick={clearActivityLog}
+              className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              title="Clear Activity Log (Ctrl+Shift+L)"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear Log
+            </button>
+
+            {/* Clear Conversation Button */}
+            <button
+              onClick={clearConversation}
+              className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              title="Delete Conversation (Ctrl+Shift+D)"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.451c-.905-.545-1.94-.808-3.094-.808H3a1 1 0 01-1-1v-1.5c0-1.104.896-2 2-2h.5c.312 0 .625.074.909.214A10.986 10.986 0 0112 4c4.418 0 8 3.582 8 8z" />
+              </svg>
+              Clear Chat
+            </button>
+
+            {/* Toggle Activity Log Button */}
             <button
               onClick={() => setShowActivityLog(!showActivityLog)}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -29,12 +92,15 @@ export default function Home() {
                   ? 'text-purple-600 bg-purple-50 hover:bg-purple-100' 
                   : 'text-gray-600 bg-gray-50 hover:bg-gray-100'
               }`}
+              title={`${showActivityLog ? 'Hide' : 'Show'} Activity Log (Ctrl+Shift+A)`}
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Activity
+              {showActivityLog ? 'Hide Activity' : 'Show Activity'}
             </button>
+
+            {/* Upload Button */}
             <button
               onClick={() => setShowUploadModal(true)}
               className="hidden sm:flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
@@ -55,7 +121,7 @@ export default function Home() {
           <div className="grid grid-cols-3 h-full overflow-hidden">
             {/* Chat Area - 2/3 width */}
             <div className="col-span-2 h-full overflow-hidden">
-              <ChatInterface onActivityLog={setActivityLog} />
+              <ChatInterface key={chatKey} onActivityLog={setActivityLog} />
             </div>
             
             {/* Activity Log Panel - 1/3 width */}
@@ -64,13 +130,14 @@ export default function Home() {
                 entries={activityLog}
                 isOpen={true}
                 onToggle={() => setShowActivityLog(!showActivityLog)}
+                onClear={clearActivityLog}
               />
             </div>
           </div>
         ) : (
           /* Full-width chat when activity log is hidden */
           <div className="h-full overflow-hidden">
-            <ChatInterface onActivityLog={setActivityLog} />
+            <ChatInterface key={chatKey} onActivityLog={setActivityLog} />
           </div>
         )}
         

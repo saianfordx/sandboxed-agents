@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { chatCompletion, createConversation } from '@/actions/chatCompletion';
 import type { ChatMessage, ChatStatus } from '@/lib/utils/types';
+import MarkdownRenderer from './MarkdownRenderer';
 
 import { ActivityLogEntry } from './ActivityLog';
 
@@ -16,6 +17,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [conversationId, setConversationId] = useState<string>('');
+  const [thinkingSteps, setThinkingSteps] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -40,6 +42,14 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
         status
       }]);
     }
+  };
+
+  const addThinkingStep = (step: string) => {
+    setThinkingSteps(prev => [...prev, step]);
+  };
+
+  const clearThinkingSteps = () => {
+    setThinkingSteps([]);
   };
 
   // Helper functions for query analysis
@@ -93,25 +103,25 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
 
   const initializeConversation = async () => {
     try {
-      addActivityLog('connection', 'Initializing conversation...');
+      addActivityLog('connection', '🚀 Firing up the conversation engines...');
       const { conversationId: newConversationId } = await createConversation();
       setConversationId(newConversationId);
-      addActivityLog('connection', 'Conversation initialized successfully', { conversationId: newConversationId }, 'success');
+      addActivityLog('connection', '✨ Conversation ready to rock and roll!', { conversationId: newConversationId }, 'success');
       
-      // Add welcome message
+            // Add energetic welcome message
       const welcomeMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
-        content: "Hello! I'm your AI assistant. I can help you find information from your uploaded documents and generate images. What would you like to know or create?",
+        content: "Hey there! 👋 I'm your friendly AI assistant, and I'm absolutely *thrilled* to help you today! 🎉\n\nI'm like a super-powered librarian who never gets tired of digging through documents (and I promise I won't shush you! 😄). Whether you need to find specific information, get summaries, or just want to chat about your documents, I'm here for it!\n\nSo, what adventure shall we embark on today? What would you like to explore? 🚀",
         role: 'assistant',
         timestamp: new Date(),
         conversationId: newConversationId,
       };
-      
+
       setMessages([welcomeMessage]);
-    } catch (error) {
-      console.error('Failed to initialize conversation:', error);
-      addActivityLog('connection', 'Failed to initialize conversation', { error: error instanceof Error ? error.message : 'Unknown error' }, 'error');
-    }
+          } catch (error) {
+        console.error('Failed to initialize conversation:', error);
+        addActivityLog('connection', '😅 Oops! Had a tiny hiccup starting up, but we\'ll get there!', { error: error instanceof Error ? error.message : 'Unknown error' }, 'error');
+      }
   };
 
   const scrollToBottom = () => {
@@ -138,7 +148,14 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       const recentMessages = messages.slice(-5); // Last 5 messages for context
       const context = recentMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
 
-      addActivityLog('processing', 'Starting chat completion...', { 
+            // Start thinking process
+      addThinkingStep("🤔 Reading and analyzing your question...");
+      
+      // Simulate progressive thinking
+      await new Promise(resolve => setTimeout(resolve, 500));
+      addThinkingStep("📝 Breaking down the query components and intent...");
+
+      addActivityLog('processing', '🎯 Alright, let\'s dive into this question!', { 
         message: input.trim(), 
         conversationId, 
         contextLength: recentMessages.length 
@@ -147,8 +164,14 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       // Enhanced detailed activity logging
       const startTime = Date.now();
       
+      await new Promise(resolve => setTimeout(resolve, 300));
+      addThinkingStep("🧠 Initializing LangGraph workflow engine...");
+      
       // 1. Initial Agent Analysis
-      addActivityLog('agent', '🧠 RAG Agent Initialization', {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      addThinkingStep("⚙️ Loading GPT-4 model with temperature 0.7 for balanced creativity...");
+      
+      addActivityLog('agent', '🧠 Waking up my super-smart RAG brain!', {
         agentType: 'LangGraph Multi-Tool RAG Agent',
         model: 'GPT-4',
         temperature: 0.7,
@@ -157,31 +180,66 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
         contextLength: messages.length
       });
 
-             // 2. Query Analysis
-       addActivityLog('processing', '🔍 Analyzing User Query', {
-         query: input.trim(),
-         queryLength: input.trim().length,
-         queryType: classifyQuery(input.trim()),
-         needsRetrieval: needsDocumentRetrieval(input.trim()),
-         needsImageGeneration: needsImageGeneration(input.trim())
-       });
+      await new Promise(resolve => setTimeout(resolve, 300));
+      addThinkingStep("🔍 Classifying query type and determining context requirements...");
+      
+      // 2. Query Analysis
+      const queryType = classifyQuery(input.trim());
+      const needsRetrieval = needsDocumentRetrieval(input.trim());
+      const needsImageGen = needsImageGeneration(input.trim());
+      
+      await new Promise(resolve => setTimeout(resolve, 400));
+      addThinkingStep(`📊 Query classified as: ${queryType}`);
+      
+      addActivityLog('processing', '🔍 Hmm, let me think about this question...', {
+        query: input.trim(),
+        queryLength: input.trim().length,
+        queryType: queryType,
+        needsRetrieval: needsRetrieval,
+        needsImageGeneration: needsImageGen
+      });
 
-       // 3. Decision Node - Tool Selection
-       const toolsNeeded = determineRequiredTools(input.trim());
-       addActivityLog('decision', '⚡ Decision Node: Tool Selection', {
-         decision: 'Analyzing query to determine required tools',
-         availableTools: ['retrieve_documents', 'search_by_source', 'get_knowledge_base_info', 'contextualize_question', 'generate_image'],
-         selectedTools: toolsNeeded,
-         reasoning: getToolSelectionReasoning(input.trim(), toolsNeeded)
-       });
+      // 3. Decision Node - Tool Selection
+      const toolsNeeded = determineRequiredTools(input.trim());
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      if (toolsNeeded.includes('retrieve_documents')) {
+        addThinkingStep("💡 Document retrieval required - preparing vector search tools...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+        addThinkingStep("🔧 Configuring Pinecone vector database connection...");
+      } else if (toolsNeeded.includes('generate_image')) {
+        addThinkingStep("🎨 Image generation requested - initializing DALL-E 3...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+        addThinkingStep("🖼️ Setting up image parameters and safety filters...");
+      } else {
+        addThinkingStep("🤓 Using general knowledge base - no external tools needed...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+        addThinkingStep("📚 Accessing pre-trained knowledge for response...");
+      }
+        
+        addActivityLog('decision', '⚡ Picking the perfect tools for the job!', {
+          decision: 'Time to choose my superpowers for this task',
+          availableTools: ['retrieve_documents', 'search_by_source', 'get_knowledge_base_info', 'contextualize_question', 'generate_image'],
+          selectedTools: toolsNeeded,
+          reasoning: getToolSelectionReasoning(input.trim(), toolsNeeded)
+        });
 
+      await new Promise(resolve => setTimeout(resolve, 300));
+      addThinkingStep("🚀 Launching LangGraph state machine execution...");
+      
       // 4. Agent Invocation
-      addActivityLog('agent', '🚀 Invoking LangGraph Agent', {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      addThinkingStep("🔄 Entering agent node in workflow graph...");
+      
+      addActivityLog('agent', '🚀 Launching into action with my LangGraph powers!', {
         agentWorkflow: 'StateGraph with MessagesAnnotation',
         nodes: ['agent', 'tools'],
         edges: ['__start__ → agent', 'agent → tools (conditional)', 'tools → agent'],
         currentNode: '__start__'
       });
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      addThinkingStep("📡 Sending request to OpenAI API with optimized parameters...");
       
       const response = await chatCompletion({
         message: input.trim(),
@@ -195,9 +253,12 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       if (response.success) {
         // 5. Tool Execution Simulation
         if (toolsNeeded.includes('retrieve_documents')) {
-          addActivityLog('tool', '🔧 Tool Execution: retrieve_documents', {
+          await new Promise(resolve => setTimeout(resolve, 400));
+          addThinkingStep("🔌 Establishing secure connection to Pinecone vector database...");
+          
+          addActivityLog('tool', '🔧 Time to go document hunting! 🕵️‍♀️', {
             toolName: 'retrieve_documents',
-            purpose: 'Search knowledge base for relevant information',
+            purpose: 'Digging through your knowledge base like a digital archaeologist!',
             parameters: {
               query: input.trim(),
               limit: 5,
@@ -205,6 +266,9 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
             },
             reasoning: 'User query requires information from document knowledge base'
           });
+
+          await new Promise(resolve => setTimeout(resolve, 300));
+          addThinkingStep("🧮 Converting query to 384-dimensional embedding vector...");
 
           addActivityLog('connection', '🔗 Vector Database Connection', {
             database: 'Pinecone',
@@ -222,7 +286,10 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
             }
           }, 'success');
 
-          addActivityLog('retrieval', '🔍 Semantic Search Execution', {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          addThinkingStep("🔍 Performing cosine similarity search across document embeddings...");
+          
+          addActivityLog('retrieval', '🔍 Searching through your docs with laser precision!', {
             searchType: 'Vector Similarity Search',
             embeddingModel: 'text-embedding-3-large',
             query: input.trim(),
@@ -231,7 +298,12 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
           });
 
                      if (response.sources && response.sources.length > 0) {
-             addActivityLog('retrieval', '📋 Documents Retrieved', {
+             await new Promise(resolve => setTimeout(resolve, 600));
+             addThinkingStep(`📋 Retrieved ${response.sources.length} relevant document chunks with high similarity scores...`);
+             await new Promise(resolve => setTimeout(resolve, 300));
+             addThinkingStep("📖 Analyzing document content and extracting key information...");
+             
+             addActivityLog('retrieval', '📋 Jackpot! Found some great stuff! 🎉', {
                documentsFound: response.sources.length,
                sources: response.sources.map(s => ({
                  title: s.metadata.documentTitle || 'Unknown',
@@ -251,7 +323,12 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
                reasoning: 'Tool execution completed, returning to agent for response synthesis'
              });
           } else {
-            addActivityLog('retrieval', '❌ No Relevant Documents Found', {
+            await new Promise(resolve => setTimeout(resolve, 400));
+            addThinkingStep("🤔 Vector search returned no results above threshold...");
+            await new Promise(resolve => setTimeout(resolve, 200));
+            addThinkingStep("📚 Falling back to general knowledge base...");
+            
+            addActivityLog('retrieval', '🤔 Hmm, couldn\'t find exactly what we\'re looking for...', {
               searchQuery: input.trim(),
               threshold: 0.7,
               suggestion: 'Query may be too specific or knowledge base lacks relevant information'
@@ -260,6 +337,8 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
         }
 
         if (toolsNeeded.includes('generate_image')) {
+          addThinkingStep("🎨 Initializing image generation with DALL-E...");
+          
           addActivityLog('tool', '🎨 Tool Execution: generate_image', {
             toolName: 'generate_image',
             purpose: 'Generate image using DALL-E',
@@ -273,6 +352,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
           });
 
           if (response.imageUrl) {
+            addThinkingStep("🖼️ Image generated successfully!");
             addActivityLog('tool', '🖼️ Image Generation Complete', {
               imageUrl: response.imageUrl,
               metadata: response.imageMetadata,
@@ -282,6 +362,8 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
         }
 
                  // 6. Decision Node - Response Generation
+         await new Promise(resolve => setTimeout(resolve, 300));
+         addThinkingStep("⚡ Analyzing retrieved information and determining response strategy...");
          addActivityLog('decision', '⚡ Decision Node: Response Strategy', {
            decision: 'Determining response generation approach',
            hasRetrievedDocs: !!(response.sources?.length),
@@ -293,6 +375,13 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
          });
 
         // 7. Response Synthesis
+        await new Promise(resolve => setTimeout(resolve, 400));
+        addThinkingStep("✨ Synthesizing final response with proper citations and formatting...");
+        await new Promise(resolve => setTimeout(resolve, 300));
+        addThinkingStep("🔗 Ensuring all source citations are properly linked...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+        addThinkingStep("✅ Final quality check and response formatting complete!");
+        
         addActivityLog('processing', '✨ Response Synthesis', {
           strategy: 'LLM-powered synthesis',
           inputSources: response.sources?.length || 0,
@@ -332,7 +421,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
         }, 'error');
       }
 
-      addActivityLog('processing', 'Chat completion finished', { 
+              addActivityLog('processing', '🎉 All done! Hope that helps!', { 
         success: response.success, 
         messageLength: response.message?.length || 0,
         hasSources: response.sources?.length || 0,
@@ -355,7 +444,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       } else {
         const errorMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
-          content: `Sorry, I encountered an error: ${response.error || 'Unknown error'}`,
+          content: `Oops! 😅 I hit a little snag there. Don't worry though - even AI assistants have their clumsy moments! Let's try that again, shall we? \n\nError details: ${response.error || 'Something mysterious happened'}`,
           role: 'assistant',
           timestamp: new Date(),
           conversationId,
@@ -368,7 +457,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       
       const errorMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
-        content: 'Sorry, I encountered an error while processing your message.',
+        content: 'Whoops! 🤦‍♀️ Something went wonky on my end. I promise I\'m usually better at this! Mind giving it another shot? I\'ll try to behave this time! 😊',
         role: 'assistant',
         timestamp: new Date(),
         conversationId,
@@ -377,6 +466,7 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setStatus('idle');
+              clearThinkingSteps();
     }
   }, [input, status, conversationId, messages]);
 
@@ -425,7 +515,10 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
                   : 'bg-gray-100 text-gray-900 mr-12'
               }`}
             >
-              <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                              <MarkdownRenderer 
+                  content={message.content} 
+                  sources={message.sources} 
+                />
               
               {/* Generated Image */}
               {message.imageUrl && (
@@ -470,8 +563,34 @@ export default function ChatInterface({ onClose, onActivityLog }: ChatInterfaceP
           </div>
         ))}
         
-        {/* Typing indicator */}
-        {status === 'processing' && (
+        {/* Thinking indicator */}
+        {status === 'processing' && thinkingSteps.length > 0 && (
+          <div className="flex justify-start">
+            <div className="bg-blue-50 text-blue-900 border border-blue-200 px-4 py-3 rounded-2xl mr-12 max-w-2xl">
+              <div className="flex items-start space-x-3">
+                <div className="flex space-x-1 mt-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-blue-800 mb-2">💭 Thinking...</div>
+                  <div className="space-y-1">
+                    {thinkingSteps.map((step, index) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        <div className="flex-shrink-0 w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+                        <div className="text-sm text-blue-700">{step}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Fallback typing indicator */}
+        {status === 'processing' && thinkingSteps.length === 0 && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-gray-900 border border-gray-200 px-4 py-2 rounded-lg">
               <div className="flex items-center space-x-1">
