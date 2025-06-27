@@ -3,11 +3,12 @@
 ## PROJECT OVERVIEW
 This is a Next.js application that implements a RAG (Retrieval Augmented Generation) system using Pinecone vector store and LangChain conversational agents, with integrated DALL-E image generation capabilities.
 
-## CURRENT TASK: REVISING AGENT.MD FOR PRESENTATION
-- **TASK**: Creating presentation-ready documentation explaining the RAG agent architecture
-- **TARGET AUDIENCE**: Both developers and non-developers unfamiliar with RAG/LangGraph
-- **FOCUS**: Clear explanations, visual diagrams, real-world analogies
-- **STATUS**: In Progress - Analyzing current implementation and creating structured documentation
+## CURRENT TASK: DOCUMENT UPLOAD SYSTEM ENHANCEMENT
+- **TASK**: Creating comprehensive documentation and enhancing the document upload pipeline
+- **TARGET**: Complete document upload system with proper validation, processing, and storage
+- **FOCUS**: Document ingestion pipeline, chunking strategies, embeddings generation, and vector storage
+- **STATUS**: Documentation Complete - Focus on upload system optimization and user experience
+- **NEW DELIVERABLE**: UPLOAD-DOCUMENTS.md comprehensive guide created
 
 ## CORE PRINCIPLES
 
@@ -61,13 +62,18 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
 - **ALWAYS** configure appropriate index dimensions and metrics
 - **ALWAYS** implement proper batch processing for embeddings
 
-### 7. DOCUMENT PROCESSING
+### 7. DOCUMENT PROCESSING - ENHANCED GUIDELINES
 - **ALWAYS** use `pdf-parse` for PDF document processing
 - **ALWAYS** implement proper file upload validation and security
 - **ALWAYS** use `RecursiveCharacterTextSplitter` for optimal chunking
-- **ALWAYS** configure appropriate chunk sizes (1000-1500 characters recommended)
-- **ALWAYS** implement overlapping chunks (200-300 characters overlap)
+- **ALWAYS** configure appropriate chunk sizes (1500 characters recommended)
+- **ALWAYS** implement overlapping chunks (200 characters overlap)
 - **ALWAYS** preserve document metadata through the processing pipeline
+- **ALWAYS** implement comprehensive error handling for file processing
+- **ALWAYS** use TEST_MODE for development without API keys
+- **ALWAYS** log processing steps for debugging and monitoring
+- **ALWAYS** validate file types, sizes, and content before processing
+- **ALWAYS** clean up resources on processing failures
 
 ### 8. RAG IMPLEMENTATION PATTERNS
 - **ALWAYS** implement retrieval as tools using LangChain's tool system
@@ -122,12 +128,22 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
 - **ALWAYS** handle sensitive data appropriately
 - **ALWAYS** implement rate limiting to prevent abuse
 
+### 14. DOCUMENTATION STANDARDS - NEW
+- **ALWAYS** create comprehensive guides for major system components
+- **ALWAYS** use visual diagrams and analogies to explain complex concepts
+- **ALWAYS** include real-world examples and code snippets
+- **ALWAYS** document error handling and edge cases
+- **ALWAYS** explain the "why" behind technical decisions
+- **ALWAYS** keep documentation up-to-date with code changes
+- **ALWAYS** use consistent formatting and emoji conventions for readability
+
 ## DEVELOPMENT WORKFLOW
 
 1. **BEFORE STARTING ANY TASK:**
    - Check this RULES.md file
    - Review `docs/REQUIREMENTS_CHECKLIST.md`
    - Consult latest documentation for relevant technologies
+   - Review relevant system guides (AGENT.md, UPLOAD-DOCUMENTS.md)
    - Verify all dependencies are correctly installed
 
 2. **DURING DEVELOPMENT:**
@@ -136,12 +152,14 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
    - Write clean, self-documenting code
    - Test with real data and APIs
    - Update progress in requirements checklist
+   - Document any new components or significant changes
 
 3. **AFTER COMPLETING A TASK:**
    - Update the requirements list status to ✅ **DONE**
    - Verify implementation against documentation
    - Test the complete functionality end-to-end
    - Document any challenges or learnings
+   - Update relevant system documentation if needed
 
 ## FORBIDDEN PRACTICES
 - ❌ Using mocked or dummy data in production code
@@ -152,6 +170,7 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
 - ❌ Writing code without proper TypeScript types
 - ❌ Implementing callbacks with fake responses
 - ❌ Using legacy LangChain patterns when modern alternatives exist
+- ❌ Creating documentation without real examples or proper explanations
 
 ## REQUIRED PRACTICES
 - ✅ Always check latest documentation (LangChain v0.3+, Pinecone latest, OpenAI latest)
@@ -163,4 +182,6 @@ This is a Next.js application that implements a RAG (Retrieval Augmented Generat
 - ✅ Test with real data and scenarios
 - ✅ Use LangSmith for monitoring and debugging
 - ✅ Implement proper conversation memory with LangGraph
-- ✅ Use tool-calling patterns for retrieval interactions 
+- ✅ Use tool-calling patterns for retrieval interactions
+- ✅ Create comprehensive documentation for system components
+- ✅ Include visual diagrams and real-world analogies in documentation 
