@@ -218,6 +218,27 @@ export class PineconeClient {
   }
 
   /**
+   * Delete all documents from the Pinecone index
+   * @returns Promise<void>
+   */
+  async deleteAllDocuments(): Promise<void> {
+    try {
+      console.log('Deleting all documents from Pinecone index...');
+
+      const index = this.pinecone.index(this.indexName);
+      
+      // Delete all vectors from the index
+      await index.deleteAll();
+
+      console.log('Successfully deleted all documents from Pinecone index');
+    } catch (error) {
+      throw new Error(
+        `Failed to delete all documents: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
    * Get index statistics
    * @returns Promise<object> - Index statistics
    */
